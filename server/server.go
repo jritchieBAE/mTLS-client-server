@@ -14,7 +14,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	server, err := mtls.NewTLSServer("../cert.pem", "../key.pem")
+	server, err := mtls.NewTLSServer(":8443", "../cert.pem", "../key.pem")
 	if err != nil {
 		log.Fatal(err)
 	}

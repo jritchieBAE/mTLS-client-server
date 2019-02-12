@@ -9,7 +9,6 @@ import (
 
 type tlsServer struct {
 	server   *http.Server
-	port     string
 	certPath string
 	keyPath  string
 }
@@ -18,12 +17,7 @@ func (t *tlsServer) Listen() error {
 	return t.server.ListenAndServeTLS(t.certPath, t.keyPath)
 }
 
-func (t *tlsServer) SetPort(port string) {
-	t.port = ":" + port
-	t.server.Addr = t.port
-}
-
-func NewTLSServer(certPath, keyPath string) (*tlsServer, error) {
+func NewTLSServer(listenAddress string, certPath, keyPath string) (*tlsServer, error) {
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		return nil, err
@@ -35,16 +29,19 @@ func NewTLSServer(certPath, keyPath string) (*tlsServer, error) {
 	tlsConfig := &tls.Config{
 		ClientCAs:  caCertPool,
 		ClientAuth: tls.RequireAndVerifyClientCert,
+		GetCertificate: func(h *tls.ClientHelloInfo) (*tls.Certificate, error) {
+			cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+			return &cert, err
+		},
 	}
-	tlsConfig.BuildNameToCertificate()
 
 	server := &http.Server{
-		Addr:      ":8443",
+		Addr:      listenAddress,
 		TLSConfig: tlsConfig,
 	}
+
 	tls := &tlsServer{
 		server:   server,
-		port:     server.Addr,
 		certPath: certPath,
 		keyPath:  keyPath,
 	}
