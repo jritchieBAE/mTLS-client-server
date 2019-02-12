@@ -21,6 +21,7 @@ func (t *tlsServer) Listen() {
 
 func (t *tlsServer) SetPort(port string) {
 	t._port = ":" + port
+	t._server.Addr = t._port
 }
 
 func NewTLSServer(certPath, keyPath string) *tlsServer {
