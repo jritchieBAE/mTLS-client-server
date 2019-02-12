@@ -10,7 +10,10 @@ import (
 
 func main() {
 
-	client := mtls.NewTLSClient("../cert.pem", "../key.pem")
+	client, err := mtls.NewTLSClient("../cert.pem", "../key.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	r, err := client.Get("https://localhost:8443/hello")
 	if err != nil {

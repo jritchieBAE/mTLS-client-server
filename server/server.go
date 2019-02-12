@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 	"net/http"
 
 	mtls "../pkg"
@@ -12,9 +13,13 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	server, err := mtls.NewTLSServer("../cert.pem", "../key.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	http.HandleFunc("/hello", helloHandler)
 
-	server := mtls.NewTLSServer("../cert.pem", "../key.pem")
-
-	server.Listen()
+	log.Fatal(server.Listen())
 }
