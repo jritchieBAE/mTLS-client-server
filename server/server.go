@@ -14,12 +14,14 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	server, err := mtls.NewTLSServer(":8443", "../cert.pem", "../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	http.HandleFunc("/hello", helloHandler)
 
-	log.Fatal(server.Listen())
+	// server, err := (mtls.NewTLSServer().WithCertificates("../cert.pem", "../key.pem"))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// log.Fatal(server.Listen(":8443"))
+
+	server := mtls.NewTLSServer()
+	log.Fatal(server.Listen(":8080"))
 }
