@@ -17,6 +17,10 @@ func (t *tlsServer) Listen() error {
 	return t.server.ListenAndServeTLS(t.certPath, t.keyPath)
 }
 
+func (t *tlsServer) ListenNoTLS() error {
+	return t.server.ListenAndServe()
+}
+
 func NewTLSServer(listenAddress string, certPath, keyPath string) (*tlsServer, error) {
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
