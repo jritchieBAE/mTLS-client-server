@@ -15,13 +15,21 @@ type tlsServer struct {
 	keyPath   string
 }
 
-func (t *tlsServer) Listen(listenAddress string) error {
+func (t *tlsServer) ListenMTLS(listenAddress string) error {
 	if len(t.certPath) > 0 {
 		t.server = &http.Server{
 			Addr:      listenAddress,
 			TLSConfig: t.tlsConfig,
 		}
 		return t.server.ListenAndServeTLS(t.certPath, t.keyPath)
+	} else {
+		return errors.New("Cannot start mTLS server as no certificates have been defined")
+	}
+}
+
+func (t *tlsServer) ListenTLS(listenAddress string) error {
+	if len(t.certPath) > 0 {
+		return http.ListenAndServeTLS(listenAddress, t.certPath, t.keyPath, nil)
 	} else {
 		return errors.New("Cannot start TLS server as no certificates have been defined")
 	}
