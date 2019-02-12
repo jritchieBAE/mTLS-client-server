@@ -8,22 +8,22 @@ import (
 	"net/http"
 )
 
-type TLSServer struct {
+type tlsServer struct {
 	_server   *http.Server
 	_port     string
 	_certPath string
 	_keyPath  string
 }
 
-func (t *TLSServer) Listen() {
+func (t *tlsServer) Listen() {
 	log.Fatal(t._server.ListenAndServeTLS(t._certPath, t._keyPath))
 }
 
-func (t *TLSServer) SetPort(port string) {
+func (t *tlsServer) SetPort(port string) {
 	t._port = ":" + port
 }
 
-func NewTLSServer(certPath, keyPath string) *TLSServer {
+func NewTLSServer(certPath, keyPath string) *tlsServer {
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +42,7 @@ func NewTLSServer(certPath, keyPath string) *TLSServer {
 		Addr:      ":8443",
 		TLSConfig: tlsConfig,
 	}
-	tls := &TLSServer{
+	tls := &tlsServer{
 		_server:   server,
 		_port:     server.Addr,
 		_certPath: certPath,
@@ -50,4 +50,46 @@ func NewTLSServer(certPath, keyPath string) *TLSServer {
 	}
 
 	return tls
+}
+
+type tlsClient struct {
+	_client   *http.Client
+	_certPath string
+	_keyPath  string
+}
+
+func (t *tlsClient) Get(path string) (resp *http.Response, err error) {
+	return t._client.Get(path)
+}
+
+func NewTLSClient(certPath, keyPath string) *tlsClient {
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCert, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+
+	t := &tlsClient{
+		_client:   client,
+		_certPath: certPath,
+		_keyPath:  keyPath,
+	}
+	return t
 }
