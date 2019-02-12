@@ -82,6 +82,32 @@ func (t *tlsClient) Get(path string) (resp *http.Response, err error) {
 
 func NewTLSClient(certPath, keyPath string) (*tlsClient, error) {
 
+	caCert, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
+	t := &tlsClient{
+		client:   client,
+		certPath: certPath,
+		keyPath:  keyPath,
+	}
+	return t, nil
+}
+
+func NewMTLSClient(certPath, keyPath string) (*tlsClient, error) {
+
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		return nil, err
