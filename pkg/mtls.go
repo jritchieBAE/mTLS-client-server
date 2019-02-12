@@ -3,25 +3,38 @@ package mtls
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"io/ioutil"
 	"net/http"
 )
 
 type tlsServer struct {
-	server   *http.Server
-	certPath string
-	keyPath  string
+	server    *http.Server
+	tlsConfig *tls.Config
+	certPath  string
+	keyPath   string
 }
 
-func (t *tlsServer) Listen() error {
-	return t.server.ListenAndServeTLS(t.certPath, t.keyPath)
+func (t *tlsServer) Listen(listenAddress string) error {
+	if len(t.certPath) > 0 {
+		t.server = &http.Server{
+			Addr:      listenAddress,
+			TLSConfig: t.tlsConfig,
+		}
+		return t.server.ListenAndServeTLS(t.certPath, t.keyPath)
+	} else {
+		return errors.New("Cannot start TLS server as no certificates have been defined")
+	}
 }
 
-func (t *tlsServer) ListenNoTLS() error {
+func (t *tlsServer) ListenNoTLS(listenAddress string) error {
+	t.server = &http.Server{
+		Addr: listenAddress,
+	}
 	return t.server.ListenAndServe()
 }
 
-func NewTLSServer(listenAddress string, certPath, keyPath string) (*tlsServer, error) {
+func (t *tlsServer) WithCertificates(certPath, keyPath string) (*tlsServer, error) {
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		return nil, err
@@ -30,7 +43,9 @@ func NewTLSServer(listenAddress string, certPath, keyPath string) (*tlsServer, e
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	tlsConfig := &tls.Config{
+	t.certPath, t.keyPath = certPath, keyPath
+
+	t.tlsConfig = &tls.Config{
 		ClientCAs:  caCertPool,
 		ClientAuth: tls.RequireAndVerifyClientCert,
 		GetCertificate: func(h *tls.ClientHelloInfo) (*tls.Certificate, error) {
@@ -39,18 +54,12 @@ func NewTLSServer(listenAddress string, certPath, keyPath string) (*tlsServer, e
 		},
 	}
 
-	server := &http.Server{
-		Addr:      listenAddress,
-		TLSConfig: tlsConfig,
-	}
+	return t, nil
+}
 
-	tls := &tlsServer{
-		server:   server,
-		certPath: certPath,
-		keyPath:  keyPath,
-	}
-
-	return tls, nil
+func NewTLSServer() *tlsServer {
+	tls := &tlsServer{}
+	return tls
 }
 
 type tlsClient struct {
