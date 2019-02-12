@@ -1,89 +1,125 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	mtls "../pkg"
+	"reflect"
+	"runtime"
 )
 
-const (
-	htp  = "http://"
-	htps = "https://"
-	url  = "localhost:8443/hello"
-)
+const ()
 
 type ClientInterface interface {
 	Get(string) (*http.Response, error)
 }
 
 func main() {
-
-	fmt.Println("\nTesting connection with unsecured over http")
-	r, err := http.Get(htp + url)
-	if err != nil {
-		log.Println(err)
-	} else {
-		output(r)
+	urls := [...]string{
+		"http://localhost:8443/hello",
+		"https://localhost:8443/hello",
 	}
 
-	fmt.Println("\nTesting connection with unsecured over https")
-	r, err = http.Get(htps + url)
-	if err != nil {
-		log.Println(err)
-	} else {
-		output(r)
+	functions := [...]func(string){
+		unsecuredClient,
+		tlsClient,
+		mtlsClient,
 	}
-
-	fmt.Println("\nTesting connection with TLS over http")
-	client, err := mtls.NewTLSClient("../cert.pem", "../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		readFrom(client, htp+url)
-	}
-
-	fmt.Println("\nTesting connection with TLS over https")
-	client, err = mtls.NewTLSClient("../cert.pem", "../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		readFrom(client, htps+url)
-	}
-
-	fmt.Println("\nTesting connection with mTLS over http")
-	client, err = mtls.NewMTLSClient("../cert.pem", "../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		readFrom(client, htp+url)
-	}
-
-	fmt.Println("\nTesting connection with mTLS over https")
-	client, err = mtls.NewMTLSClient("../cert.pem", "../key.pem")
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		readFrom(client, htps+url)
+	for _, f := range functions {
+		for _, url := range urls {
+			fmt.Printf("\nTesting connection with %s over %s\n", fName(f), url)
+			f(url)
+		}
 	}
 }
 
-func readFrom(client ClientInterface, url string) {
+func unsecuredClient(url string) {
+	r, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+
+		defer r.Body.Close()
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%s\n", body)
+	}
+}
+
+func tlsClient(url string) {
+
+	caCert, err := ioutil.ReadFile("../cert.pem")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
 	r, err := client.Get(url)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
-		output(r)
+
+		defer r.Body.Close()
+		body, _ := ioutil.ReadAll(r.Body)
+		fmt.Printf("%s\n", body)
 	}
 }
-func output(r *http.Response) {
-	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+
+func mtlsClient(url string) {
+
+	cert, err := tls.LoadX509KeyPair("../cert.pem", "../key.pem")
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
-	fmt.Printf("%s\n", body)
+	caCert, err := ioutil.ReadFile("../cert.pem")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+
+	r, err := client.Get(url)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+
+		defer r.Body.Close()
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Printf("%s\n", body)
+	}
+}
+
+func fName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
