@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,7 +10,24 @@ import (
 )
 
 func main() {
-	r, err := http.Get("http://localhost:8080/hello")
+
+	caCert, err := ioutil.ReadFile("../cert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
+	r, err := client.Get("https://localhost:8443/hello")
 	if err != nil {
 		log.Fatal(err)
 	}
