@@ -9,19 +9,19 @@ import (
 )
 
 type tlsServer struct {
-	_server   *http.Server
-	_port     string
-	_certPath string
-	_keyPath  string
+	server   *http.Server
+	port     string
+	certPath string
+	keyPath  string
 }
 
 func (t *tlsServer) Listen() {
-	log.Fatal(t._server.ListenAndServeTLS(t._certPath, t._keyPath))
+	log.Fatal(t.server.ListenAndServeTLS(t.certPath, t.keyPath))
 }
 
 func (t *tlsServer) SetPort(port string) {
-	t._port = ":" + port
-	t._server.Addr = t._port
+	t.port = ":" + port
+	t.server.Addr = t.port
 }
 
 func NewTLSServer(certPath, keyPath string) *tlsServer {
@@ -44,23 +44,23 @@ func NewTLSServer(certPath, keyPath string) *tlsServer {
 		TLSConfig: tlsConfig,
 	}
 	tls := &tlsServer{
-		_server:   server,
-		_port:     server.Addr,
-		_certPath: certPath,
-		_keyPath:  keyPath,
+		server:   server,
+		port:     server.Addr,
+		certPath: certPath,
+		keyPath:  keyPath,
 	}
 
 	return tls
 }
 
 type tlsClient struct {
-	_client   *http.Client
-	_certPath string
-	_keyPath  string
+	client   *http.Client
+	certPath string
+	keyPath  string
 }
 
 func (t *tlsClient) Get(path string) (resp *http.Response, err error) {
-	return t._client.Get(path)
+	return t.client.Get(path)
 }
 
 func NewTLSClient(certPath, keyPath string) *tlsClient {
@@ -88,9 +88,9 @@ func NewTLSClient(certPath, keyPath string) *tlsClient {
 	}
 
 	t := &tlsClient{
-		_client:   client,
-		_certPath: certPath,
-		_keyPath:  keyPath,
+		client:   client,
+		certPath: certPath,
+		keyPath:  keyPath,
 	}
 	return t
 }
