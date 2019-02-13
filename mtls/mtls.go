@@ -22,9 +22,9 @@ func (t *TlsServer) Listen(address string) error {
 	}
 }
 
-func NewMtlsServer(cert, key string) *TlsServer {
+func NewMtlsServer(certPath, keyPath string) *TlsServer {
 
-	caCert, err := ioutil.ReadFile("../cert.pem")
+	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,16 +43,16 @@ func NewMtlsServer(cert, key string) *TlsServer {
 			Addr:      addr,
 			TLSConfig: tlsConfig,
 		}
-		return server.ListenAndServeTLS(cert, key)
+		return server.ListenAndServeTLS(certPath, keyPath)
 	}
 
 	return &TlsServer{listen: l}
 }
 
-func NewTlsServer(cert, key string) *TlsServer {
+func NewTlsServer(certPath, keyPath string) *TlsServer {
 
 	l := func(addr string) error {
-		return http.ListenAndServeTLS(addr, cert, key, nil)
+		return http.ListenAndServeTLS(addr, certPath, keyPath, nil)
 	}
 
 	return &TlsServer{listen: l}
@@ -106,8 +106,8 @@ func NewMtlsClient(certPath, keyPath string) *TlsClient {
 	return &TlsClient{get: g}
 }
 
-func NewTlsClient(cert string) *TlsClient {
-	caCert, err := ioutil.ReadFile("../cert.pem")
+func NewTlsClient(certPath string) *TlsClient {
+	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		fmt.Println(err)
 	}
