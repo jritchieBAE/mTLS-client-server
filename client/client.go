@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"runtime"
 
-	mtls "../pkg"
+	"../mtls"
 )
 
 const ()

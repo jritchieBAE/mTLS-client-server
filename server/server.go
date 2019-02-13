@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	mtls "../pkg"
+	"../mtls"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
