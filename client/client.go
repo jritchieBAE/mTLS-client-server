@@ -56,7 +56,10 @@ func unsecuredClient(url string) {
 
 func tlsClient(url string) {
 
-	client := mtls.NewTlsClient("../cert.pem")
+	client, err := mtls.NewTlsClient("../cert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
 	r, err := client.Get(url)
 
 	if err != nil {
@@ -71,7 +74,10 @@ func tlsClient(url string) {
 
 func mtlsClient(url string) {
 
-	client := mtls.NewMtlsClient("../cert.pem", "../key.pem")
+	client, err := mtls.NewMtlsClient("../cert.pem", "../key.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
 	r, err := client.Get(url)
 
 	if err != nil {

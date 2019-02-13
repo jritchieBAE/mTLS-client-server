@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"../mtls"
@@ -28,13 +29,18 @@ func main() {
 	serverType := mTLS
 
 	var server *mtls.TlsServer
+	var err error
 	switch serverType {
 	case None:
 		server = mtls.NewUnsecureServer()
 	case TLS:
-		server = mtls.NewTlsServer("../cert.pem", "../key.pem")
+		server, err = mtls.NewTlsServer("../cert.pem", "../key.pem")
 	case mTLS:
-		server = mtls.NewMtlsServer("../cert.pem", "../key.pem")
+		server, err = mtls.NewMtlsServer("../cert.pem", "../key.pem")
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	server.Listen(":8443")

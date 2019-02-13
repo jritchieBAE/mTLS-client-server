@@ -4,9 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -22,11 +20,16 @@ func (t *TlsServer) Listen(address string) error {
 	}
 }
 
-func NewMtlsServer(certPath, keyPath string) *TlsServer {
+func NewMtlsServer(certPath, keyPath string) (*TlsServer, error) {
 
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+
+	_, err = ioutil.ReadFile(keyPath)
+	if err != nil {
+		return nil, err
 	}
 
 	caCertPool := x509.NewCertPool()
@@ -46,16 +49,26 @@ func NewMtlsServer(certPath, keyPath string) *TlsServer {
 		return server.ListenAndServeTLS(certPath, keyPath)
 	}
 
-	return &TlsServer{listen: l}
+	return &TlsServer{listen: l}, nil
 }
 
-func NewTlsServer(certPath, keyPath string) *TlsServer {
+func NewTlsServer(certPath, keyPath string) (*TlsServer, error) {
+
+	_, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = ioutil.ReadFile(keyPath)
+	if err != nil {
+		return nil, err
+	}
 
 	l := func(addr string) error {
 		return http.ListenAndServeTLS(addr, certPath, keyPath, nil)
 	}
 
-	return &TlsServer{listen: l}
+	return &TlsServer{listen: l}, nil
 }
 
 func NewUnsecureServer() *TlsServer {
@@ -75,17 +88,14 @@ func (t *TlsClient) Get(url string) (*http.Response, error) {
 	return t.get(url)
 }
 
-func NewMtlsClient(certPath, keyPath string) *TlsClient {
+func NewMtlsClient(certPath, keyPath string) (*TlsClient, error) {
 
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	caCert, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		fmt.Println(err)
-	}
+	caCert, _ := ioutil.ReadFile(certPath)
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
@@ -103,13 +113,13 @@ func NewMtlsClient(certPath, keyPath string) *TlsClient {
 		return client.Get(url)
 	}
 
-	return &TlsClient{get: g}
+	return &TlsClient{get: g}, nil
 }
 
-func NewTlsClient(certPath string) *TlsClient {
+func NewTlsClient(certPath string) (*TlsClient, error) {
 	caCert, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	caCertPool := x509.NewCertPool()
@@ -127,7 +137,7 @@ func NewTlsClient(certPath string) *TlsClient {
 		return client.Get(url)
 	}
 
-	return &TlsClient{get: g}
+	return &TlsClient{get: g}, nil
 }
 
 func NewUnsecureClient() *TlsClient {
