@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -64,4 +65,75 @@ func NewUnsecureServer() *TlsServer {
 	}
 
 	return &TlsServer{listen: l}
+}
+
+type TlsClient struct {
+	get func(string) (*http.Response, error)
+}
+
+func (t *TlsClient) Get(url string) (*http.Response, error) {
+	return t.get(url)
+}
+
+func NewMtlsClient(certPath, keyPath string) *TlsClient {
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	caCert, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+				Certificates: []tls.Certificate{cert},
+			},
+		},
+	}
+
+	g := func(url string) (*http.Response, error) {
+		return client.Get(url)
+	}
+
+	return &TlsClient{get: g}
+}
+
+func NewTlsClient(cert string) *TlsClient {
+	caCert, err := ioutil.ReadFile("../cert.pem")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
+	}
+
+	g := func(url string) (*http.Response, error) {
+		return client.Get(url)
+	}
+
+	return &TlsClient{get: g}
+}
+
+func NewUnsecureClient() *TlsClient {
+	g := func(url string) (*http.Response, error) {
+		return http.Get(url)
+	}
+
+	return &TlsClient{get: g}
 }
