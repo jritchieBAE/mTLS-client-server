@@ -36,7 +36,7 @@ func NewMtlsServer(certPath, keyPath string) (*TlsServer, error) {
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	tlsConfig := &tls.Config{
-		ClientCAs:  caCertPool,
+		RootCAs:    caCertPool,
 		ClientAuth: tls.RequireAndVerifyClientCert,
 	}
 	tlsConfig.BuildNameToCertificate()
