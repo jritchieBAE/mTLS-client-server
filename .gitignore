@@ -1,3 +1,8 @@
 cert.pem
 key.pem
 privkey.pem
+localhost.crt
+ca.crt
+ca.csr
+ca.key
+ca.srl

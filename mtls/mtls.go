@@ -97,7 +97,7 @@ func NewMtlsClient(certPath, keyPath string) (*TlsClient, error) {
 
 	caCert, _ := ioutil.ReadFile(certPath)
 
-	caCertPool := x509.NewCertPool()
+	caCertPool, _ := x509.SystemCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	client := &http.Client{
@@ -122,7 +122,7 @@ func NewTlsClient(certPath string) (*TlsClient, error) {
 		return nil, err
 	}
 
-	caCertPool := x509.NewCertPool()
+	caCertPool, _ := x509.SystemCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	client := &http.Client{
