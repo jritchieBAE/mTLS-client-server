@@ -22,6 +22,11 @@ const (
 	mTLS TLSType = 2
 )
 
+var (
+	certPath = "../ca.crt"
+	keyPath  = "../ca.key"
+)
+
 func main() {
 
 	http.HandleFunc("/hello", helloHandler)
@@ -34,9 +39,9 @@ func main() {
 	case None:
 		server = mtls.NewUnsecureServer()
 	case TLS:
-		server, err = mtls.NewTlsServer("../cert.pem", "../key.pem")
+		server, err = mtls.NewTlsServer(certPath, keyPath)
 	case mTLS:
-		server, err = mtls.NewMtlsServer("../cert.pem", "../key.pem")
+		server, err = mtls.NewMtlsServer(certPath, keyPath)
 	}
 
 	if err != nil {

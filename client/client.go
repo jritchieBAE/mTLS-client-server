@@ -11,7 +11,10 @@ import (
 	"../mtls"
 )
 
-const ()
+var (
+	certPath = "cert.pem"
+	keyPath  = "key.pem"
+)
 
 type ClientInterface interface {
 	Get(string) (*http.Response, error)
@@ -19,8 +22,10 @@ type ClientInterface interface {
 
 func main() {
 	urls := [...]string{
-		"http://localhost:8443/hello",
-		"https://localhost:8443/hello",
+		// "http://localhost:8443/hello",
+		// "https://localhost:8443/hello",
+		//"https://localhost:8443/hello",
+		"https://localhost:9100/metrics",
 	}
 
 	functions := [...]func(string){
@@ -56,7 +61,7 @@ func unsecuredClient(url string) {
 
 func tlsClient(url string) {
 
-	client, err := mtls.NewTlsClient("../cert.pem")
+	client, err := mtls.NewTlsClient(certPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +79,7 @@ func tlsClient(url string) {
 
 func mtlsClient(url string) {
 
-	client, err := mtls.NewMtlsClient("../cert.pem", "../key.pem")
+	client, err := mtls.NewMtlsClient(certPath, keyPath)
 	if err != nil {
 		log.Fatal(err)
 	}
