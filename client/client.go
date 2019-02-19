@@ -23,7 +23,7 @@ type ClientInterface interface {
 
 func main() {
 	urls := [...]string{
-		"https://localhost:8443:hello",
+		"https://localhost:8443/hello",
 	}
 
 	functions := [...]func(string){
@@ -59,7 +59,7 @@ func unsecuredClient(url string) {
 
 func tlsClient(url string) {
 
-	client, err := mtls.NewTlsClient(certPath)
+	client, err := mtls.NewTlsClient(caCertPath)
 	if err != nil {
 		log.Fatal(err)
 	}

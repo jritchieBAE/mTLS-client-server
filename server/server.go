@@ -23,8 +23,9 @@ const (
 )
 
 var (
-	certPath = "../ca.crt"
-	keyPath  = "../ca.key"
+	certPath   = "../server.crt"
+	keyPath    = "../server.key"
+	caCertPath = "../root.crt"
 )
 
 func main() {
@@ -41,9 +42,8 @@ func main() {
 	case TLS:
 		server, err = mtls.NewTlsServer(certPath, keyPath)
 	case mTLS:
-		server, err = mtls.NewMtlsServer(certPath, keyPath)
+		server, err = mtls.NewMtlsServer(certPath, keyPath, caCertPath)
 	}
-
 	if err != nil {
 		log.Fatal(err)
 	}
