@@ -20,9 +20,9 @@ func (t *TlsServer) Listen(address string) error {
 	}
 }
 
-func NewMtlsServer(certPath, keyPath string) (*TlsServer, error) {
+func NewMtlsServer(certPath, keyPath, CAcertPath string) (*TlsServer, error) {
 
-	caCert, err := ioutil.ReadFile(certPath)
+	caCert, err := ioutil.ReadFile(CAcertPath)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,12 @@ func NewMtlsServer(certPath, keyPath string) (*TlsServer, error) {
 		return nil, err
 	}
 
-	caCertPool := x509.NewCertPool()
+	_, err = ioutil.ReadFile(certPath)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool, _ := x509.SystemCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
 	tlsConfig := &tls.Config{
@@ -116,8 +121,8 @@ func NewMtlsClient(certPath, keyPath string) (*TlsClient, error) {
 	return &TlsClient{get: g}, nil
 }
 
-func NewTlsClient(certPath string) (*TlsClient, error) {
-	caCert, err := ioutil.ReadFile(certPath)
+func NewTlsClient(CAcertPath string) (*TlsClient, error) {
+	caCert, err := ioutil.ReadFile(CAcertPath)
 	if err != nil {
 		return nil, err
 	}
