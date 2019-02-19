@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	certPath = "cert.pem"
-	keyPath  = "key.pem"
+	certPath   = "../client.crt"
+	keyPath    = "../client.key"
+	caCertPath = "../root.crt"
 )
 
 type ClientInterface interface {
@@ -22,10 +23,7 @@ type ClientInterface interface {
 
 func main() {
 	urls := [...]string{
-		// "http://localhost:8443/hello",
-		// "https://localhost:8443/hello",
-		//"https://localhost:8443/hello",
-		"https://localhost:9100/metrics",
+		"https://localhost:8443:hello",
 	}
 
 	functions := [...]func(string){
@@ -79,7 +77,7 @@ func tlsClient(url string) {
 
 func mtlsClient(url string) {
 
-	client, err := mtls.NewMtlsClient(certPath, keyPath)
+	client, err := mtls.NewMtlsClient(certPath, keyPath, caCertPath)
 	if err != nil {
 		log.Fatal(err)
 	}
