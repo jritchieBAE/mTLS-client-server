@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	certPath   = "../client.crt"
+	certPath   = "../clientSigned.crt"
 	keyPath    = "../client.key"
 	caCertPath = "../root.crt"
 )

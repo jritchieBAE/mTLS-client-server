@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	certPath   = "../server.crt"
+	certPath   = "../serverSigned.crt"
 	keyPath    = "../server.key"
 	caCertPath = "../root.crt"
 )
