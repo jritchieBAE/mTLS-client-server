@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"../mtls"
+	mtls "../mtlsServer"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func main() {
 
 	http.HandleFunc("/hello", helloHandler)
 
-	serverType := mTLS
+	serverType := TLS
 
 	var server *mtls.TlsServer
 	var err error

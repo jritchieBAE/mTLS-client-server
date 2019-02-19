@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"../mtls"
+	mtls "../mtlsClient"
 )
 
 var (
@@ -23,7 +23,7 @@ type ClientInterface interface {
 
 func main() {
 	urls := [...]string{
-		"https://localhost:8443/hello",
+		"https://localhost:9100",
 	}
 
 	functions := [...]func(string){
