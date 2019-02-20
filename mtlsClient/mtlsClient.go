@@ -8,20 +8,7 @@ import (
 	"net/http"
 )
 
-type TlsClient struct {
-	get func(string) (*http.Response, error)
-	do  func(*http.Request) (*http.Response, error)
-}
-
-func (t *TlsClient) Get(url string) (*http.Response, error) {
-	return t.get(url)
-}
-
-func (t TlsClient) Do(req *http.Request) (*http.Response, error) {
-	return t.do(req)
-}
-
-func NewMtlsClient(certPath, keyPath, caCertPath string) (*TlsClient, error) {
+func NewMtlsClient(certPath, keyPath, caCertPath string) (*http.Client, error) {
 
 	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
@@ -49,21 +36,10 @@ func NewMtlsClient(certPath, keyPath, caCertPath string) (*TlsClient, error) {
 		},
 	}
 
-	g := func(url string) (*http.Response, error) {
-		return client.Get(url)
-	}
-
-	d := func(req *http.Request) (*http.Response, error) {
-		return client.Do(req)
-	}
-
-	return &TlsClient{
-		get: g,
-		do:  d,
-	}, nil
+	return client, nil
 }
 
-func NewTlsClient(CAcertPath string) (*TlsClient, error) {
+func NewTlsClient(CAcertPath string) (*http.Client, error) {
 	caCert, err := ioutil.ReadFile(CAcertPath)
 	if err != nil {
 		return nil, err
@@ -80,32 +56,10 @@ func NewTlsClient(CAcertPath string) (*TlsClient, error) {
 		},
 	}
 
-	g := func(url string) (*http.Response, error) {
-		return client.Get(url)
-	}
-
-	d := func(req *http.Request) (*http.Response, error) {
-		return client.Do(req)
-	}
-
-	return &TlsClient{
-		get: g,
-		do:  d,
-	}, nil
+	return client, nil
 }
 
-func NewUnsecureClient() *TlsClient {
+func NewUnsecureClient() *http.Client {
 
-	g := func(url string) (*http.Response, error) {
-		return http.DefaultClient.Get(url)
-	}
-
-	d := func(req *http.Request) (*http.Response, error) {
-		return http.DefaultClient.Do(req)
-	}
-
-	return &TlsClient{
-		get: g,
-		do:  d,
-	}
+	return http.DefaultClient
 }

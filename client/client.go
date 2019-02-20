@@ -23,7 +23,7 @@ type ClientInterface interface {
 
 func main() {
 	urls := [...]string{
-		"https://localhost:9100",
+		"http://localhost:8080",
 	}
 
 	functions := [...]func(string){
