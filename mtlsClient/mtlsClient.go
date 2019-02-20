@@ -10,10 +10,15 @@ import (
 
 type TlsClient struct {
 	get func(string) (*http.Response, error)
+	do  func(*http.Request) (*http.Response, error)
 }
 
 func (t *TlsClient) Get(url string) (*http.Response, error) {
 	return t.get(url)
+}
+
+func (t TlsClient) Do(req *http.Request) (*http.Response, error) {
+	return t.do(req)
 }
 
 func NewMtlsClient(certPath, keyPath, caCertPath string) (*TlsClient, error) {
@@ -48,7 +53,14 @@ func NewMtlsClient(certPath, keyPath, caCertPath string) (*TlsClient, error) {
 		return client.Get(url)
 	}
 
-	return &TlsClient{get: g}, nil
+	d := func(req *http.Request) (*http.Response, error) {
+		return client.Do(req)
+	}
+
+	return &TlsClient{
+		get: g,
+		do:  d,
+	}, nil
 }
 
 func NewTlsClient(CAcertPath string) (*TlsClient, error) {
@@ -72,13 +84,28 @@ func NewTlsClient(CAcertPath string) (*TlsClient, error) {
 		return client.Get(url)
 	}
 
-	return &TlsClient{get: g}, nil
+	d := func(req *http.Request) (*http.Response, error) {
+		return client.Do(req)
+	}
+
+	return &TlsClient{
+		get: g,
+		do:  d,
+	}, nil
 }
 
 func NewUnsecureClient() *TlsClient {
+
 	g := func(url string) (*http.Response, error) {
-		return http.Get(url)
+		return http.DefaultClient.Get(url)
 	}
 
-	return &TlsClient{get: g}
+	d := func(req *http.Request) (*http.Response, error) {
+		return http.DefaultClient.Do(req)
+	}
+
+	return &TlsClient{
+		get: g,
+		do:  d,
+	}
 }
