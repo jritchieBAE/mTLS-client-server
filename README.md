@@ -2,16 +2,16 @@
 
 Example implementation of mTLS in GoLang
 
-Based on this tutorial: https://venilnoronha.io/a-step-by-step-guide-to-mtls-in-go
+Originally based on this tutorial: https://venilnoronha.io/a-step-by-step-guide-to-mtls-in-go
 
-The mtls package provides the following APIs:
+The mtlsServer package provides the following APIs:
 
 To create a server:
 - NewUnsecureServer()
 - NewTlsServer(certPath, keyPath string)
 - NewMtlsServer(certPath, keyPath string)
 
-The server object returned by these methods can be started with a call to server.Listen(address string)
+The object (*TlsServer) returned by these methods can be started with a call to server.Listen(address string). This provides a standard interface rather than specifying whether the server is to Listen, 
 
 
 To create a client:
@@ -19,4 +19,4 @@ To create a client:
 - NewTlsClient(certPath string)
 - NewMtlsClient(cerPath, keyPath string)
 
-The client object returned by these methods can read from a server with a call to client.Get(url)
+The object returned by these methods is a standard http.Client object and can be used to contact a server as per the standard API
