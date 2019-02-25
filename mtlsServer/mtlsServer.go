@@ -25,9 +25,8 @@ func NewMtlsServer(addr, certPath, keyPath, caCertPath string) (*http.Server, er
 		return nil, errors.New("Failed to parse CA Certificate")
 	}
 
-	tlsConfig := *server.TLSConfig
-	tlsConfig.ClientCAs = clientCAs
-	tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	server.TLSConfig.ClientCAs = clientCAs
+	server.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
 
 	return server, nil
 }
