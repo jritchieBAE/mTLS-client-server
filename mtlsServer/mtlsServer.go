@@ -8,21 +8,9 @@ import (
 	"net/http"
 )
 
-type TlsServer struct {
-	listen (func(string) error)
-}
+func NewMtlsServer(addr, certPath, keyPath, caCertPath string) (*http.Server, error) {
 
-func (t *TlsServer) Listen(address string) error {
-	if t.listen != nil {
-		return t.listen(address)
-	} else {
-		return errors.New("Server not instantiated")
-	}
-}
-
-func NewMtlsServer(certPath, keyPath, caCertPath string) (*TlsServer, error) {
-
-	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	server, err := NewTlsServer(addr, certPath, keyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -37,48 +25,36 @@ func NewMtlsServer(certPath, keyPath, caCertPath string) (*TlsServer, error) {
 		return nil, errors.New("Failed to parse CA Certificate")
 	}
 
+	tlsConfig := *server.TLSConfig
+	tlsConfig.ClientCAs = clientCAs
+	tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
+
+	return server, nil
+}
+
+func NewTlsServer(addr, certPath, keyPath string) (*http.Server, error) {
+
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+	if err != nil {
+		return nil, err
+	}
+
 	tlsConfig := &tls.Config{
-		ClientCAs:    clientCAs,
-		ClientAuth:   tls.RequireAndVerifyClientCert,
 		Certificates: []tls.Certificate{cert},
 	}
 	tlsConfig.BuildNameToCertificate()
 
-	l := func(addr string) error {
-		server := &http.Server{
-			Addr:      addr,
-			TLSConfig: tlsConfig,
-		}
-		return server.ListenAndServeTLS(certPath, keyPath)
+	server := &http.Server{
+		Addr:      addr,
+		TLSConfig: tlsConfig,
 	}
 
-	return &TlsServer{listen: l}, nil
+	return server, nil
 }
 
-func NewTlsServer(certPath, keyPath string) (*TlsServer, error) {
+func NewServer(addr string) *http.Server {
 
-	_, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		return nil, err
+	return &http.Server{
+		Addr: addr,
 	}
-
-	_, err = ioutil.ReadFile(keyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	l := func(addr string) error {
-		return http.ListenAndServeTLS(addr, certPath, keyPath, nil)
-	}
-
-	return &TlsServer{listen: l}, nil
-}
-
-func NewUnsecureServer() *TlsServer {
-
-	l := func(addr string) error {
-		return http.ListenAndServe(addr, nil)
-	}
-
-	return &TlsServer{listen: l}
 }

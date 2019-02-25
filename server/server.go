@@ -34,19 +34,21 @@ func main() {
 
 	serverType := TLS
 
-	var server *mtls.TlsServer
+	var server *http.Server
 	var err error
 	switch serverType {
 	case None:
-		server = mtls.NewUnsecureServer()
+		server = mtls.NewServer(":8443")
+		log.Fatal(server.ListenAndServe())
 	case TLS:
-		server, err = mtls.NewTlsServer(certPath, keyPath)
+		server, err = mtls.NewTlsServer(":8443", certPath, keyPath)
+		log.Fatal(server.ListenAndServeTLS("", ""))
 	case mTLS:
-		server, err = mtls.NewMtlsServer(certPath, keyPath, caCertPath)
+		server, err = mtls.NewMtlsServer(":8443", certPath, keyPath, caCertPath)
+		log.Fatal(server.ListenAndServeTLS("", ""))
 	}
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server.Listen(":8443")
 }
