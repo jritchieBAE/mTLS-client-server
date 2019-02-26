@@ -4,26 +4,34 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
+	"os"
 	"reflect"
+	"regexp"
 	"runtime"
 
 	mtls "../mtlsClient"
 )
 
 var (
-	certPath   = "../clientSigned.crt"
-	keyPath    = "../client.key"
+	certPath   = "../cert.crt"
+	keyPath    = "../cert.key"
 	caCertPath = "../root.crt"
 )
 
-type ClientInterface interface {
-	Get(string) (*http.Response, error)
-}
-
+// client.go tests a URL to see if it can be connected to by unsecured HTTP,
+// TLS, or mTLS, using the provided certificates. An alternative URL to
+// test can be provided as a command line parameter.
 func main() {
-	urls := [...]string{
-		"https://localhost:8443/hello",
+	url := "http://localhost:8080"
+
+	if len(os.Args) > 1 {
+		args := os.Args[1:]
+		re := regexp.MustCompile(`http.?:\/\/.*`)
+		if re.Match([]byte(args[0])) {
+			url = args[0]
+		} else {
+			log.Fatal("URL not recognised: " + args[0])
+		}
 	}
 
 	functions := [...]func(string){
@@ -32,10 +40,8 @@ func main() {
 		mtlsClient,
 	}
 	for _, f := range functions {
-		for _, url := range urls {
-			fmt.Printf("\nTesting connection with %s over %s\n", fName(f), url)
-			f(url)
-		}
+		fmt.Printf("\nTesting connection with %s over %s\n", fName(f), url)
+		f(url)
 	}
 }
 
